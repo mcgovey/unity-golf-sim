@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class TileHighlighter : MonoBehaviour
 {
@@ -33,8 +34,11 @@ public class TileHighlighter : MonoBehaviour
 
     private void Update()
     {
+        // Get mouse position using the new Input System
+        Vector2 mousePosition = Mouse.current.position.ReadValue();
+
         // Cast a ray from the mouse position
-        Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+        Ray ray = mainCamera.ScreenPointToRay(mousePosition);
         RaycastHit hit;
 
         // Check if the ray hits something

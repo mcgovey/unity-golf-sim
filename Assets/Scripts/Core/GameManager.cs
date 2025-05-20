@@ -5,6 +5,9 @@ public class GameManager : MonoBehaviour
     // Singleton instance
     private static GameManager _instance;
 
+    // Game state reference
+    public GameState State { get; private set; }
+
     // Public property to access the singleton
     public static GameManager Instance
     {
@@ -38,12 +41,16 @@ public class GameManager : MonoBehaviour
 
         _instance = this;
         DontDestroyOnLoad(gameObject);
+
+        // Initialize game state
+        State = new GameState();
     }
 
     // Start is called before the first frame update
     private void Start()
     {
         Debug.Log("Game Started");
+        Debug.Log(State.ToString());
     }
 
     // Update is called once per frame

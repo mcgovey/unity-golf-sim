@@ -11,7 +11,7 @@ public class GridSystem : MonoBehaviour
     [SerializeField] private GameObject tilePrefab;
 
     // Store created tiles
-    private GameObject[,] tiles;
+    private Tile[,] tiles;
 
     private void Start()
     {
@@ -21,7 +21,7 @@ public class GridSystem : MonoBehaviour
     public void GenerateGrid()
     {
         // Initialize tile array
-        tiles = new GameObject[gridWidth, gridHeight];
+        tiles = new Tile[gridWidth, gridHeight];
 
         // Calculate offset to center the grid
         float offsetX = (gridWidth - 1) * tileSize * 0.5f;
@@ -36,18 +36,28 @@ public class GridSystem : MonoBehaviour
             for (int z = 0; z < gridHeight; z++)
             {
                 // Create tile GameObject
-                GameObject tile;
+                GameObject tileObject;
+                Tile tileComponent;
 
                 if (tilePrefab != null)
                 {
                     // Instantiate from prefab if provided
-                    tile = Instantiate(tilePrefab, gridParent);
+                    tileObject = Instantiate(tilePrefab, gridParent);
+                    tileComponent = tileObject.GetComponent<Tile>();
+
+                    // If the prefab doesn't have a Tile component, add one
+                    if (tileComponent == null)
+                    {
+                        tileComponent = tileObject.AddComponent<Tile>();
+                    }
                 }
                 else
                 {
-                    // Create an empty GameObject if no prefab
-                    tile = new GameObject($"Tile_{x}_{z}");
-                    tile.transform.parent = gridParent;
+                    // Create a primitive cube if no prefab
+                    tileObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    tileObject.transform.parent = gridParent;
+                    tileObject.transform.localScale = new Vector3(0.9f, 0.1f, 0.9f); // Flat cube with small gaps
+                    tileComponent = tileObject.AddComponent<Tile>();
                 }
 
                 // Position the tile
@@ -57,10 +67,14 @@ public class GridSystem : MonoBehaviour
                     z * tileSize - offsetZ
                 );
 
-                tile.transform.position = tilePosition;
+                tileObject.transform.position = tilePosition;
+
+                // Initialize the tile
+                Vector2Int gridPosition = new Vector2Int(x, z);
+                tileComponent.Initialize(gridPosition);
 
                 // Store the tile
-                tiles[x, z] = tile;
+                tiles[x, z] = tileComponent;
 
                 // Log for debugging
                 Debug.Log($"Created tile at ({x}, {z})");
@@ -71,7 +85,7 @@ public class GridSystem : MonoBehaviour
     }
 
     // Get a tile at specific coordinates
-    public GameObject GetTileAt(int x, int z)
+    public Tile GetTileAt(int x, int z)
     {
         if (x >= 0 && x < gridWidth && z >= 0 && z < gridHeight)
         {
@@ -88,6 +102,10 @@ public class GridSystem : MonoBehaviour
 
         int x = Mathf.RoundToInt((worldPosition.x + offsetX) / tileSize);
         int z = Mathf.RoundToInt((worldPosition.z + offsetZ) / tileSize);
+
+        // Clamp to valid grid range
+        x = Mathf.Clamp(x, 0, gridWidth - 1);
+        z = Mathf.Clamp(z, 0, gridHeight - 1);
 
         return new Vector2Int(x, z);
     }

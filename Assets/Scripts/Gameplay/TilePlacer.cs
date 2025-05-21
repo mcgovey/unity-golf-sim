@@ -7,6 +7,9 @@ public class TilePlacer : MonoBehaviour
     [SerializeField] private GridSystem gridSystem;
     [SerializeField] private Camera mainCamera;
 
+    // Reference to the GameManager to access GameState
+    private GameManager gameManager;
+
     private void Start()
     {
         // If mainCamera is not set, try to find the main camera
@@ -20,6 +23,9 @@ public class TilePlacer : MonoBehaviour
         {
             gridSystem = FindObjectOfType<GridSystem>();
         }
+
+        // Get reference to GameManager
+        gameManager = GameManager.Instance;
     }
 
     private void Update()
@@ -59,8 +65,13 @@ public class TilePlacer : MonoBehaviour
                 // Set the tile type to Hole
                 clickedTile.SetTileType(Tile.TileType.Hole);
 
+                // Create a new HoleData and add it to GameState
+                HoleData newHole = new HoleData(gridPosition);
+                gameManager.State.BuiltHoles.Add(newHole);
+
                 // Log for debugging
                 Debug.Log($"Placed hole at ({gridPosition.x}, {gridPosition.y})");
+                Debug.Log($"Total holes built: {gameManager.State.BuiltHoles.Count}");
             }
         }
     }

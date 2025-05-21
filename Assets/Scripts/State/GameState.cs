@@ -7,7 +7,7 @@ public class GameState
     public int PlayerCash { get; set; }
 
     // List of holes that have been built
-    public List<HoleData> BuiltHoles { get; private set; }
+    public List<HoleData> BuiltHoles { get; set; }
 
     // Constructor with default values
     public GameState()

@@ -119,6 +119,7 @@ public class GridSystem : MonoBehaviour
         float x = gridPosition.x * tileSize - offsetX;
         float z = gridPosition.y * tileSize - offsetZ;
 
+        Debug.Log($"Converting grid ({gridPosition.x}, {gridPosition.y}) to world: ({x}, 0, {z})");
         return new Vector3(x, 0f, z);
     }
 }

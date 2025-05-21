@@ -33,10 +33,25 @@ public class GolferSystem : MonoBehaviour
         if (gridSystem == null)
         {
             gridSystem = FindObjectOfType<GridSystem>();
+            if (gridSystem == null)
+            {
+                Debug.LogError("GolferSystem could not find GridSystem!");
+            }
+            else
+            {
+                Debug.Log("GridSystem found automatically: " + gridSystem.name);
+            }
         }
 
         // Get reference to GameManager
         gameManager = GameManager.Instance;
+        if (gameManager == null)
+        {
+            Debug.LogError("GolferSystem could not find GameManager!");
+            return;
+        }
+
+        Debug.Log($"Starting game with {gameManager.State.BuiltHoles.Count} holes");
 
         // Spawn a golfer on start if needed
         if (spawnOnStart)
@@ -84,16 +99,26 @@ public class GolferSystem : MonoBehaviour
     // Find a hole for the golfer to move to
     private void FindHoleForGolfer(GolferController golfer)
     {
-        if (golfer == null) return;
+        if (golfer == null)
+        {
+            Debug.LogError("FindHoleForGolfer: Golfer is null!");
+            return;
+        }
 
         // Check if there are any holes in the game state
         if (gameManager.State.BuiltHoles.Count > 0)
         {
+            Debug.Log($"Found {gameManager.State.BuiltHoles.Count} holes, directing golfer to the first one");
+
             // For the MVP, just use the first hole
             HoleData targetHole = gameManager.State.BuiltHoles[0];
 
+            Debug.Log($"Target hole position: ({targetHole.Position.x}, {targetHole.Position.y})");
+
             // Find the world position for this hole
             Vector3 holePosition = gridSystem.GridToWorld(targetHole.Position);
+
+            Debug.Log($"World position for hole: {holePosition}");
 
             // Tell the golfer to go there
             golfer.SetDestination(holePosition);
@@ -102,7 +127,7 @@ public class GolferSystem : MonoBehaviour
         }
         else
         {
-            Debug.Log("No holes found for golfer to target");
+            Debug.LogWarning("No holes found for golfer to target! Place a hole first.");
         }
     }
 

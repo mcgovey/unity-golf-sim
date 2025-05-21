@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 public class GolferSystem : MonoBehaviour
@@ -12,6 +13,7 @@ public class GolferSystem : MonoBehaviour
 
     [Header("Debugging")]
     [SerializeField] private bool spawnOnStart = true;
+    [SerializeField] private float initDelay = 0.5f; // Delay before initialization to allow other systems to start up
 
     // Reference to the GameManager to access GameState
     private GameManager gameManager;
@@ -21,6 +23,15 @@ public class GolferSystem : MonoBehaviour
 
     private void Start()
     {
+        // Delay initialization to ensure other systems are ready
+        StartCoroutine(DelayedInitialization());
+    }
+
+    private IEnumerator DelayedInitialization()
+    {
+        // Wait a moment to ensure other systems have initialized
+        yield return new WaitForSeconds(initDelay);
+
         // If no spawn point is set, create one at origin
         if (spawnPoint == null)
         {
@@ -36,6 +47,7 @@ public class GolferSystem : MonoBehaviour
             if (gridSystem == null)
             {
                 Debug.LogError("GolferSystem could not find GridSystem!");
+                yield break;
             }
             else
             {
@@ -43,12 +55,19 @@ public class GolferSystem : MonoBehaviour
             }
         }
 
+        // Wait for grid to be fully generated
+        while (!gridSystem.IsGridGenerated())
+        {
+            Debug.Log("Waiting for grid to be generated...");
+            yield return new WaitForSeconds(0.2f);
+        }
+
         // Get reference to GameManager
         gameManager = GameManager.Instance;
         if (gameManager == null)
         {
             Debug.LogError("GolferSystem could not find GameManager!");
-            return;
+            yield break;
         }
 
         Debug.Log($"Starting game with {gameManager.State.BuiltHoles.Count} holes");
@@ -66,10 +85,17 @@ public class GolferSystem : MonoBehaviour
     private void Update()
     {
         // Check if any golfers need to be assigned targets
-        foreach (GolferController golfer in activeGolfers)
+        foreach (GolferController golfer in activeGolfers.ToArray()) // Use ToArray to avoid modification during iteration
         {
             // Here we could check if the golfer needs a new target
             // For now, we'll just assign targets at spawn time
+        }
+
+        // For debugging: Press space to spawn a new golfer
+        if (UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame)
+        {
+            GolferController golfer = SpawnGolfer();
+            FindHoleForGolfer(golfer);
         }
     }
 
@@ -102,6 +128,18 @@ public class GolferSystem : MonoBehaviour
         if (golfer == null)
         {
             Debug.LogError("FindHoleForGolfer: Golfer is null!");
+            return;
+        }
+
+        if (gridSystem == null)
+        {
+            Debug.LogError("FindHoleForGolfer: GridSystem is null!");
+            return;
+        }
+
+        if (!gridSystem.IsGridGenerated())
+        {
+            Debug.LogError("FindHoleForGolfer: Grid is not yet generated!");
             return;
         }
 

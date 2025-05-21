@@ -13,6 +13,15 @@ public class GridSystem : MonoBehaviour
     // Store created tiles
     private Tile[,] tiles;
 
+    // Flag to track if grid has been generated
+    private bool gridGenerated = false;
+
+    private void Awake()
+    {
+        // Initialize the tiles array early to prevent null reference
+        tiles = new Tile[gridWidth, gridHeight];
+    }
+
     private void Start()
     {
         GenerateGrid();
@@ -20,8 +29,11 @@ public class GridSystem : MonoBehaviour
 
     public void GenerateGrid()
     {
-        // Initialize tile array
-        tiles = new Tile[gridWidth, gridHeight];
+        // Initialize tile array if not already done
+        if (tiles == null)
+        {
+            tiles = new Tile[gridWidth, gridHeight];
+        }
 
         // Calculate offset to center the grid
         float offsetX = (gridWidth - 1) * tileSize * 0.5f;
@@ -81,12 +93,20 @@ public class GridSystem : MonoBehaviour
             }
         }
 
+        gridGenerated = true;
         Debug.Log($"Generated {gridWidth}x{gridHeight} grid");
     }
 
     // Get a tile at specific coordinates
     public Tile GetTileAt(int x, int z)
     {
+        // Safety check to prevent null reference exceptions
+        if (tiles == null)
+        {
+            Debug.LogError("Tiles array is null! Make sure GenerateGrid has been called.");
+            return null;
+        }
+
         if (x >= 0 && x < gridWidth && z >= 0 && z < gridHeight)
         {
             return tiles[x, z];
@@ -116,10 +136,18 @@ public class GridSystem : MonoBehaviour
         float offsetX = (gridWidth - 1) * tileSize * 0.5f;
         float offsetZ = (gridHeight - 1) * tileSize * 0.5f;
 
+        // Fixed: Use gridPosition.x and gridPosition.y correctly
+        // Vector2Int.x corresponds to the x coordinate, Vector2Int.y to the z coordinate in 3D space
         float x = gridPosition.x * tileSize - offsetX;
-        float z = gridPosition.y * tileSize - offsetZ;
+        float z = gridPosition.y * tileSize - offsetZ; // This should be Z, using gridPosition.y
 
         Debug.Log($"Converting grid ({gridPosition.x}, {gridPosition.y}) to world: ({x}, 0, {z})");
         return new Vector3(x, 0f, z);
+    }
+
+    // Property to check if grid is ready
+    public bool IsGridGenerated()
+    {
+        return gridGenerated && tiles != null;
     }
 }

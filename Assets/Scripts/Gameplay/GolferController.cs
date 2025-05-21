@@ -14,10 +14,16 @@ public class GolferController : MonoBehaviour
     // Whether the golfer is currently moving
     private bool isMoving = false;
 
+    // Reference to the GolferSystem
+    private GolferSystem golferSystem;
+
     private void Start()
     {
         // Set initial appearance
         SetupVisuals();
+
+        // Find the GolferSystem
+        golferSystem = FindObjectOfType<GolferSystem>();
     }
 
     private void SetupVisuals()
@@ -92,6 +98,9 @@ public class GolferController : MonoBehaviour
 
         // Log that we've reached the destination
         Debug.Log("Golfer reached destination");
+
+        // Since in our simple MVP this only happens when reaching a hole, call ReachHole
+        ReachHole();
     }
 
     // Called when the golfer reaches a hole
@@ -102,6 +111,12 @@ public class GolferController : MonoBehaviour
 
         // Log for debugging
         Debug.Log($"Golfer completed hole with score: {score}");
+
+        // Notify GolferSystem before destruction
+        if (golferSystem != null)
+        {
+            golferSystem.RemoveGolfer(this);
+        }
 
         // Destroy the golfer (will be replaced with actual behavior later)
         Destroy(gameObject);
